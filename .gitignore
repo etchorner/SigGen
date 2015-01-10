@@ -6,6 +6,13 @@
 *.user
 *.userosscache
 *.sln.docstates
+Visual Micro/
+*.opensdf
+*.sdf
+*.vcxproj
+*.sln
+*.filters
+
 
 # Build results
 [Dd]ebug/
