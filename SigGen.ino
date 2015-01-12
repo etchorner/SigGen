@@ -4,21 +4,21 @@
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 
-// LCD/I2C Macros
-#define I2C_ADDR 0x27
-#define BACKLIGHT_PIN     3
-#define En_pin  2
-#define Rw_pin  1
-#define Rs_pin  0
-#define D4_pin  4
-#define D5_pin  5
-#define D6_pin  6
-#define D7_pin  7
+// LCD/I2C parameter variables
+const byte i2cAddr = 0x27;
+const byte backlightPin = 3;
+const byte enPin = 2;
+const byte rwPin = 1;
+const byte rsPin = 0;
+const byte dsPin = 4;
+const byte d5Pin = 5;
+const byte d6Pin = 6;
+const byte d7Pin = 7;
 
-// Rotary Encoder Macros
-#define ENC_PIN_A 0  // pin D1
-#define ENC_PIN_B 1  // pin D0
-#define ENC_PIN_SW 4  // pin D4
+// Rotary Encoder parameter variables
+const byte encPinA = 0;  // pin D1
+const byte encPinB = 1; // pin D0
+const byte encPinSw = 4;  // pin D4
 
 // Variables - cleanup?
 volatile int turnCount = 0;
@@ -26,18 +26,19 @@ int dfindex = 3;
 int pos = 19 - dfindex;
 const long deltaF[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000 }; // scaling factors for freq adjustment
 const String tuneRate[] = { "1 Hz   ", "10 Hz  ", "100 Hz ", "1 kHz  ", "10 kHz ", "100 kHz", "1 MHz  ", "10 MHz " };
-unsigned long freq = 5700000; // TODO: why is this double and not long?
+unsigned long freq = 7150000; // TODO: why is this double and not long?
+unsigned long stop = 73000000;
 boolean encSwitchState = true;
 boolean encLastSwitchState = false;
 
 // Create the LCD/I2C object
-LiquidCrystal_I2C lcd(I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
+LiquidCrystal_I2C lcd(i2cAddr, enPin, rwPin, rsPin, dsPin, d5Pin, d6Pin, d7Pin);
 // Create the Rotary Encoder object
-Rotary encoder = Rotary(ENC_PIN_A, ENC_PIN_B);
+Rotary encoder = Rotary(encPinA, encPinB);
 // Create the Si5351 object
 Si5351 si5351;
 
-// ISR for Rotary Encoder pins...here's where menu/frequency code will go.
+// ISR for Rotary Encoder pins...
 void readEncoder() {
 	unsigned char result = encoder.process();
 	if (result == DIR_NONE) {
@@ -60,35 +61,32 @@ void setup()
 
 	// set up LCD and blank display
 	lcd.begin(20, 4);
-	lcd.setBacklightPin(BACKLIGHT_PIN, POSITIVE);
+	lcd.setBacklightPin(backlightPin, POSITIVE);
 	lcd.setBacklight(HIGH);
 	lcd.home();
 
-	// set up I/O pins (NOTE: rotary encoder pins are handled in the library)
-	pinMode(ENC_PIN_SW, INPUT_PULLUP);
+	// set up I/O pins (NOTE: rotary encoder pins are handled in the Rotary library)
+	pinMode(encPinSw, INPUT_PULLUP);
 
 	// setup the si5351 generator
-	si5351.init(SI5351_CRYSTAL_LOAD_8PF);
+	si5351.init(SI5351_CRYSTAL_LOAD_10PF);
 	si5351.set_pll(SI5351_PLL_FIXED, SI5351_PLLA);
-	si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_4MA);
+	si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_2MA);
 	si5351.clock_enable(SI5351_CLK1, 0);  // disable unused outputs
 	si5351.clock_enable(SI5351_CLK2, 0);  // disable unused outputs
 	si5351.set_freq(freq, SI5351_PLL_FIXED, SI5351_CLK0);
 
 	// test display setup  
-	lcd.print("Signal Generator");
+	lcd.print("Signal Generator CLK0");
 	lcd.setCursor(0, 1);        // go to the 2nd line  
-	lcd.print("NT7S Si5351 lib");
+	lcd.print("Drive: 4 mA");
 	lcd.setCursor(0, 2);        // go to the third line  
 	lcd.print("Tune Rate : ");; // start data at (10,2)
 	lcd.print(tuneRate[dfindex]);
 	lcd.setCursor(0, 3); // got to 4th line
-	lcd.print("Freq: ");
 	changeFreq();
 	lcd.setCursor(pos, 3);
 	lcd.cursor();
-
-	Serial.begin(9600);
 }
 
 void loop()
@@ -99,23 +97,22 @@ void loop()
 	*/
 
 	// handle rotary encoder axial switch in the main code.
-	encSwitchState = digitalRead(ENC_PIN_SW);
+	encSwitchState = digitalRead(encPinSw);
 	if (encSwitchState == LOW && encLastSwitchState == false)
 	{
-		// increment the frequency change index for each click
-		dfindex++;
+		// decrement the frequency change index for each click
+		dfindex--;
 
 		// wrap around from end to beginning
-		if (dfindex > 7)
-			dfindex = 0;
+		if (dfindex < 0)
+			dfindex = 7;
 
 		// cursor position and set the debounce variable.
 		pos = 19 - dfindex;
 		encLastSwitchState = true;
 
-		// change display accordingly
-		lcd.setCursor(0, 2);
-		lcd.print("Tune Rate : ");
+		// change tune rate display accordingly
+		lcd.setCursor(12, 2);
 		lcd.print(tuneRate[dfindex]);
 		lcd.setCursor(pos, 3);
 	}
@@ -131,12 +128,11 @@ void loop()
 	{
 		freq = freq + (turnCount * deltaF[dfindex]);
 		changeFreq();
-		turnCount = 0;
+		turnCount = 0; //reset the counter
 	}
 
-
 	// band sweeper code
-	//while (freq	<stop)
+	//while (freq < stop)
 	//{
 	//	freq = freq + (turnCount * deltaF[dfindex]);
 	//	changeFreq();
@@ -149,6 +145,7 @@ void changeFreq()
 {
 	// change the output first
 	si5351.set_freq(freq, SI5351_PLL_FIXED, SI5351_CLK0);
+	String freqStr = String(freq, DEC);
 
 	// blank the line
 	lcd.setCursor(12, 3);
