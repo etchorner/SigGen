@@ -8,6 +8,8 @@ from 8 kHz to about 160 Mhz. The output is a square wave 3Vpp signal with select
 four row by twenty column LCD is part of the user interface. Both the LCD and the Si5351 modules are controlled and 
 monitored through the I2C bus presented by the Arduino controller. The final piece of the system, as of 1/14/2015, is a rotary encoder with push-button which is used to operate the signal generator system.
 
+In large part, this project would be a dead ender were it not for the work of Jason Milldrun, [NT7S](http://nt7s.com/), from whose Si5351Arduino [library](https://github.com/etherkit/Si5351Arduino) my accomplishment springs. This library stands well above anything else I've seen in terms of ease of use and reliability. 
+
 ##Operation
 If wired according to the schematic (to be attached later), one can change the tuning rate, or tuning steps, by pushing the encoder axial push-button. The rate will decrement from the most significant digit (10 MHz) to the least (1 Hz), at which point the rate will 'wrap-around to the most significant digit again.
 
