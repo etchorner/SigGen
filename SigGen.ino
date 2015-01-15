@@ -22,11 +22,11 @@ const byte encPinSw = 4;  // pin D4
 
 // Variables - cleanup?
 volatile int turnCount = 0;
-int dfindex = 3;
+int dfindex = 4;
 int pos = 19 - dfindex;
 const long deltaF[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000 }; // scaling factors for freq adjustment
 const String tuneRate[] = { "1 Hz   ", "10 Hz  ", "100 Hz ", "1 kHz  ", "10 kHz ", "100 kHz", "1 MHz  ", "10 MHz " };
-unsigned long freq = 7150000; // TODO: why is this double and not long?
+unsigned long freq = 7190000; // TODO: why is this double and not long?
 unsigned long stop = 73000000;
 boolean encSwitchState = true;
 boolean encLastSwitchState = false;
@@ -77,7 +77,7 @@ void setup()
 	si5351.set_freq(freq, SI5351_PLL_FIXED, SI5351_CLK0);
 
 	// test display setup  
-	lcd.print("Signal Generator CLK0");
+	lcd.print("SigGen v0.5 CLK0");
 	lcd.setCursor(0, 1);        // go to the 2nd line  
 	lcd.print("Drive: 4 mA");
 	lcd.setCursor(0, 2);        // go to the third line  
