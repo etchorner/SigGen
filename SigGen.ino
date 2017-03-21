@@ -35,9 +35,7 @@
 int dfindex = 4;
 int pos = 19 - dfindex;
 const long deltaF[] = { 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000 }; // scaling factors for freq adjustment
-const String tuneRate[] = { "1 Hz   ", "10 Hz  ", "100 Hz ", "1 kHz  ",
-                            "10 kHz ", "100 kHz", "1 MHz  ", "10 MHz "
-                          };
+const String tuneRate[] = { "1 Hz   ", "10 Hz  ", "100 Hz ", "1 kHz  ", "10 kHz ", "100 kHz", "1 MHz  ", "10 MHz "};
 unsigned long freq = 7190000; // TODO: why is this double and not long?
 unsigned long stop = 73000000;
 
@@ -84,7 +82,7 @@ void setup() {
 }
 
 void loop() {
-  // handle rotary encoder axial switch in the main code loop. 
+  // handle rotary encoder axial switch in the main code loop.
   if (debouncer.update()) { // don't bother if nothing has changed...
     if (debouncer.fell()) {  // don't bother if it hasn't gone LOW....
       // decrement the frequency change index for each click
@@ -102,12 +100,11 @@ void loop() {
       lcd.print(tuneRate[dfindex]);
       lcd.setCursor(pos, 3);
     }
-    
-    // change freq according to the Encoder accumulation, if any
-    freq = freq + (encoder.read() * deltaF[dfindex]);
-    changeFreq();
-    encoder.write(0);
   }
+  // change freq according to the Encoder accumulation, if any
+  freq = freq + (encoder.read() * deltaF[dfindex]);
+  changeFreq();
+  encoder.write(0);
 }
 
 void changeFreq() {
