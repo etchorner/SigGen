@@ -3,7 +3,7 @@
   SigGen.ino - RF Signal Generator Control System
 
   Copyright (C) 2015 Christopher M. Horner, chris.horner@gmail.com
-  p
+
   This program is free software : you can redistribute it and / or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -60,12 +60,12 @@ void setup() {
   // setup the si5351 generator
   si5351.init(SI5351_CRYSTAL_LOAD_10PF, 0, 0); // 10pf for the Adafruit si5351 modules, uses ABM8G-25.000MHZ-B4Y-T or ABM8G-25.000MHZ-4Y-T3
   si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA);
-  si5351.set_freq(freq, SI5351_CLK0);
+  si5351.set_freq(freq * SI5351_FREQ_MULT, SI5351_CLK0);
 
   // generate/terminate signals
-  si5351.output_enable(SI5351_CLK0, HIGH);  // turn on desired output
-  si5351.set_clock_pwr(SI5351_CLK1, LOW);  // disable unused outputs
-  si5351.set_clock_pwr(SI5351_CLK2, LOW);  // disable unused outputs
+  si5351.output_enable(SI5351_CLK0, 1);  // turn on desired output
+  si5351.set_clock_pwr(SI5351_CLK1, 0);  // disable unused outputs
+  si5351.set_clock_pwr(SI5351_CLK2, 0);  // disable unused outputs
 
   // test display setup
   lcd.print("SigGen v1.0 CLK0");
@@ -109,7 +109,7 @@ void loop() {
 
 void changeFreq() {
   // change the output first
-  si5351.set_freq(freq, SI5351_CLK0);
+  si5351.set_freq(freq * SI5351_FREQ_MULT, SI5351_CLK0);
   String freqStr = String(freq, DEC);
 
   // blank the line
